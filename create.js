@@ -1,34 +1,64 @@
 function create() {
     grupoEnemigos = this.add.group();
 
-    initSounds.call(this);
+    //initSounds.call(this);
     createWorld.call(this);
     createAnimations.call(this);
     createPlayer.call(this);
     crearControles.call(this);
     crearBarraVida.call(this);
     crearBarraNivel.call(this);
+    crearTextoRonda.call(this);
+    crearTextoNivel.call(this);
+    crearJefe.call(this);
 
     setInterval(() => {
         for (i = 0; i < 4; i++) crearHoja.call(this);
     }, 400);
 
     // Para que no haya que esperar los primeros 60 segundos para que aparezcan los primeros enemigos
-    for (i = 0; i < numEnemigosRonda; i++) crearSerpiente.call(this)
+    /*for (i = 0; i < numEnemigosRonda; i++) crearSerpiente.call(this)
     setInterval(() => {
-        if (numRonda <= 5) {
+        let dado;
+        if (numRondaHastaBoss < 10) {
             for (i = 0; i < numEnemigosRonda; i++) crearSerpiente.call(this);
         }
-        else if (numRonda > 5 && numRonda <= 15) {
-            for (i = 0; i < numEnemigosRonda; i++) crearBambu.call(this);
+        else if (numRondaHastaBoss >=10 && numRondaHastaBoss < 15) {
+            for (i = 0; i < numEnemigosRonda; i++) {
+                dado = Math.random() * 2;
+
+                if (dado >= 0 && dado <= 1) {
+                    crearSerpiente.call(this);
+                }
+                else if (dado >= 1 && dado <= 2) {
+                    crearBambu.call(this);
+                }
+            }
         }
-        else {
-            for (i = 0; i < numEnemigosRonda; i++) crearAranya.call(this);
+        else if (numRondaHastaBoss >= 15 && numRondaHastaBoss < 20) {
+            for (i = 0; i < numEnemigosRonda; i++) {
+                dado = Math.random() * 3;
+
+                if (dado >= 0 && dado <= 1) {
+                    crearSerpiente.call(this);
+                }
+                else if (dado >= 1 && dado <= 2) {
+                    crearBambu.call(this);
+                }
+                else if (dado >= 2 && dado <= 3) {
+                    crearAranya.call(this);
+                }
+            }
+        }
+        else if (numRondaHastaBoss == 20) {
+            crearJefe.call(this);
+            numRondaHastaBoss = 0;
         }
 
-        //console.log("Ronda: " + numRonda)
-        numRonda++;
-    }, 30000);//60000
+        numRondaHastaBoss++;
+        numRondaReal++;
+        actualizarTextoRonda();
+    }, 2000);//60000*/
 
     this.physics.add.overlap(jugador, grupoEnemigos, quitarVida, null, this);
     this.input.on('pointerdown', disparar, this);
@@ -156,13 +186,41 @@ function createAnimations() {
         key: 'bfuego_abajo', frameRate: 1,
         frames: this.anims.generateFrameNumbers('bola_abajo', { start: 0, end: 2 })
     });
+
+    // Boss final
+    anims.create({
+        key: 'boss_abajo', frameRate: 10, repeat: -1,
+        frames: this.anims.generateFrameNumbers('boss_andar', { start: 0, end: 7 })
+    });
+    /*anims.create({
+        key: 'boss_arriba', frameRate: 10, repeat: -1,
+        frames: this.anims.generateFrameNumbers('boss_andar', { start: 4, end: 7 })
+    });*/
+    /*anims.create({
+        key: 'boss_arriba', frameRate: 10, repeat: -1,
+        frames: this.anims.generateFrameNumbers('boss_andar', { start: 4, end: 7 })
+    });
+    anims.create({
+        key: 'boss_arriba', frameRate: 10, repeat: -1,
+        frames: this.anims.generateFrameNumbers('boss_andar', { start: 4, end: 7 })
+    });*/
+    anims.create({
+        key: 'boss_parado', frameRate: 10, repeat: -1,
+        frames: this.anims.generateFrameNumbers('boss_reposo', { start: 0, end: 5 })
+    });
+    
+
+    anims.create({
+        key: 'boss_transformacion', frameRate: 5,
+        frames: this.anims.generateFrameNumbers('boss_trans', { start: 0, end: 10 })
+    });
 }
 
 function createPlayer() {
-    const PUNTO_APARICION = mapa.findObject('objetos', objeto => objeto.name === 'punto_aparicion');
+    punto_aparicion = mapa.findObject('objetos', objeto => objeto.name === 'punto_aparicion');
 
-    jugador = this.physics.add.sprite(PUNTO_APARICION.x * scale,
-        PUNTO_APARICION.y * scale, 'movimiento_jugador').setScale(scale * 1.40).
+    jugador = this.physics.add.sprite(punto_aparicion.x * scale,
+        punto_aparicion.y * scale, 'movimiento_jugador').setScale(scale * 1.40).
         setCollideWorldBounds(true).setDepth(3).setImmovable();
 
     jugador.vida = 200;
@@ -233,25 +291,44 @@ function crearSerpiente() {
 
     serpiente.interval = setInterval(() => {
         let vX = 0, vY = 0;
+        let tolerancia = 3;
 
-        if (jugador.x > serpiente.x) {
-            vX = VELOCIDAD_SERPIENTE;
+        if (Math.trunc(Math.abs(jugador.x - serpiente.x)) <= tolerancia)
+        {
+            if (jugador.y > serpiente.y) {
+                vY = VELOCIDAD_SERPIENTE;
+            }
+            else if (jugador.y < serpiente.y) {
+                vY = -VELOCIDAD_SERPIENTE;
+            }
         }
-        else if (jugador.x < serpiente.x) {
-            vX = -VELOCIDAD_SERPIENTE;
-        }
-        else if (jugador.x == serpiente.x) {
-            vX = 0;
+        else
+        {
+            if (jugador.x > serpiente.x) {
+                vX = VELOCIDAD_SERPIENTE;
+            }
+            else if (jugador.x < serpiente.x) {
+                vX = -VELOCIDAD_SERPIENTE;
+            }
         }
 
-        if (jugador.y > serpiente.y) {
-            vY = VELOCIDAD_SERPIENTE;
+        if (Math.trunc(Math.abs(jugador.y - serpiente.y)) <= tolerancia)
+        {
+            if (jugador.x > serpiente.x) {
+                vX = VELOCIDAD_SERPIENTE;
+            }
+            else if (jugador.x < serpiente.x) {
+                vX = -VELOCIDAD_SERPIENTE;
+            }
         }
-        else if (jugador.y < serpiente.y) {
-            vY = -VELOCIDAD_SERPIENTE;
-        }
-        else if (jugador.y == serpiente.y) {
-            vY = 0;
+        else
+        {
+            if (jugador.y > serpiente.y) {
+                vY = VELOCIDAD_SERPIENTE;
+            }
+            else if (jugador.y < serpiente.y) {
+                vY = -VELOCIDAD_SERPIENTE;
+            }
         }
 
         serpiente.setVelocity(vX, vY);
@@ -281,25 +358,44 @@ function crearBambu() {
 
     bambu.interval = setInterval(() => {
         let vX = 0, vY = 0;
+        let tolerancia = 10;
 
-        if (jugador.x > bambu.x) {
-            vX = VELOCIDAD_BAMBU;
+        if (Math.trunc(Math.abs(jugador.x - bambu.x)) <= tolerancia)
+        {
+            if (jugador.y > bambu.y) {
+                vY = VELOCIDAD_BAMBU;
+            }
+            else if (jugador.y < bambu.y) {
+                vY = -VELOCIDAD_BAMBU;
+            }
         }
-        else if (jugador.x < bambu.x) {
-            vX = -VELOCIDAD_BAMBU;
-        }
-        else if (jugador.x == bambu.x) {
-            vX = 0;
+        else
+        {
+            if (jugador.x > bambu.x) {
+                vX = VELOCIDAD_BAMBU;
+            }
+            else if (jugador.x < bambu.x) {
+                vX = -VELOCIDAD_BAMBU;
+            }
         }
 
-        if (jugador.y > bambu.y) {
-            vY = VELOCIDAD_BAMBU;
+        if (Math.trunc(Math.abs(jugador.y - bambu.y)) <= tolerancia)
+        {
+            if (jugador.x > bambu.x) {
+                vX = VELOCIDAD_BAMBU;
+            }
+            else if (jugador.x < bambu.x) {
+                vX = -VELOCIDAD_BAMBU;
+            }
         }
-        else if (jugador.y < bambu.y) {
-            vY = -VELOCIDAD_BAMBU;
-        }
-        else if (jugador.y == bambu.y) {
-            vY = 0;
+        else
+        {
+            if (jugador.y > bambu.y) {
+                vY = VELOCIDAD_BAMBU;
+            }
+            else if (jugador.y < bambu.y) {
+                vY = -VELOCIDAD_BAMBU;
+            }
         }
 
         bambu.setVelocity(vX, vY);
@@ -329,25 +425,44 @@ function crearAranya() {
 
     aranya.interval = setInterval(() => {
         let vX = 0, vY = 0;
+        let tolerancia = 15;
 
-        if (jugador.x > aranya.x) {
-            vX = VELOCIDAD_ARANYA;
+        if (Math.trunc(Math.abs(jugador.x - aranya.x)) <= tolerancia)
+        {
+            if (jugador.y > aranya.y) {
+                vY = VELOCIDAD_ARANYA;
+            }
+            else if (jugador.y < aranya.y) {
+                vY = -VELOCIDAD_ARANYA;
+            }
         }
-        else if (jugador.x < aranya.x) {
-            vX = -VELOCIDAD_ARANYA;
-        }
-        else if (jugador.x == aranya.x) {
-            vX = 0;
+        else
+        {
+            if (jugador.x > aranya.x) {
+                vX = VELOCIDAD_ARANYA;
+            }
+            else if (jugador.x < aranya.x) {
+                vX = -VELOCIDAD_ARANYA;
+            }
         }
 
-        if (jugador.y > aranya.y) {
-            vY = VELOCIDAD_ARANYA;
+        if (Math.trunc(Math.abs(jugador.y - aranya.y)) <= tolerancia)
+        {
+            if (jugador.x > aranya.x) {
+                vX = VELOCIDAD_ARANYA;
+            }
+            else if (jugador.x < aranya.x) {
+                vX = -VELOCIDAD_ARANYA;
+            }
         }
-        else if (jugador.y < aranya.y) {
-            vY = -VELOCIDAD_ARANYA;
-        }
-        else if (jugador.y == aranya.y) {
-            vY = 0;
+        else
+        {
+            if (jugador.y > aranya.y) {
+                vY = VELOCIDAD_ARANYA;
+            }
+            else if (jugador.y < aranya.y) {
+                vY = -VELOCIDAD_ARANYA;
+            }
         }
 
         aranya.setVelocity(vX, vY);
@@ -356,6 +471,72 @@ function crearAranya() {
         else if (vX > 0) aranya.anims.play('aranya_derecha', true);
         else if (vY < 0) aranya.anims.play('aranya_arriba', true);
         else if (vY > 0) aranya.anims.play('aranya_abajo', true);
+    }, 100);
+}
+
+function crearJefe() {
+    bossFinal = this.physics.add.sprite(punto_aparicion.x * scale, 
+        punto_aparicion.y * scale, 'boss_reposo').setScale(scale).
+        setCollideWorldBounds(true).setDepth(3);
+    
+    grupoEnemigos.add(bossFinal);
+
+    this.physics.add.collider(bossFinal, capaElementosSuelo);
+    this.physics.add.collider(bossFinal, capaSuelo);
+    this.physics.add.collider(bossFinal, capaJugador);
+
+    bossFinal.vida = 2000;
+
+    bossFinal.anims.play('boss_transformacion', true);
+
+    setInterval(() => {
+        let vX = 0, vY = 0;
+        let tolerancia = 10;
+
+        if (Math.trunc(Math.abs(jugador.x - bossFinal.x)) <= tolerancia)
+        {
+            if (jugador.y > bossFinal.y) {
+                vY = VELOCIDAD_BOSS;
+            }
+            else if (jugador.y < bossFinal.y) {
+                vY = -VELOCIDAD_BOSS;
+            }
+        }
+        else
+        {
+            if (jugador.x > bossFinal.x) {
+                vX = VELOCIDAD_BOSS;
+            }
+            else if (jugador.x < bossFinal.x) {
+                vX = -VELOCIDAD_BOSS;
+            }
+        }
+
+        if (Math.trunc(Math.abs(jugador.y - bossFinal.y)) <= tolerancia)
+        {
+            if (jugador.x > bossFinal.x) {
+                vX = VELOCIDAD_BOSS;
+            }
+            else if (jugador.x < bossFinal.x) {
+                vX = -VELOCIDAD_BOSS;
+            }
+        }
+        else
+        {
+            if (jugador.y > bossFinal.y) {
+                vY = VELOCIDAD_BOSS;
+            }
+            else if (jugador.y < bossFinal.y) {
+                vY = -VELOCIDAD_BOSS;
+            }
+        }
+
+        bossFinal.setVelocity(vX, vY);
+
+        if (vX < 0) bossFinal.anims.play('boss_abajo', true);//izquierda
+        else if (vX > 0) bossFinal.anims.play('boss_abajo', true);//derecha
+        else if (vY < 0) bossFinal.anims.play('boss_abajo', true);// arriba
+        else if (vY > 0) bossFinal.anims.play('boss_abajo', true);
     }, 100);
 }
 
@@ -369,6 +550,18 @@ function crearBarraNivel() {
     barraNivel = this.add.sprite(ANCHO_PANTALLA - 451, 60, 'barra_nivel').
         setOrigin(0).setDepth(5);
     barraNivel.setScrollFactor(0);
+}
+
+function crearTextoRonda() {
+    textoRonda = this.add.text(ANCHO_PANTALLA / 2.75, 65, `Ronda ${numRondaReal}`).
+        setScale(scale).setOrigin(0.5, 0).setDepth(5);
+    textoRonda.setScrollFactor(0);
+}
+
+function crearTextoNivel() {
+    textoNivel = this.add.text(ANCHO_PANTALLA / 1.75, 65, `Nivel ${nivelJugador}`).
+        setScale(scale).setOrigin(0.5, 0).setDepth(5);
+    textoNivel.setScrollFactor(0);
 }
 
 function disparar(evento) {
@@ -440,8 +633,7 @@ function quitarVida(jugador) {
         jugador.vida -= 20;
         jugador.golpeado = true;
         jugador.tiempoInmune = this.time.now + 3000;
-        console.log(jugador.vida);
-        //jugador.setTint(0xe7f24e);
+        jugador.setTint(0xe7f24e);
         actualizarBarraVida();
     }
     else if (jugador.vida == 0){
@@ -464,6 +656,7 @@ function subirNivel() {
     contadorFrameNivel = 0;
     
     barraNivel.setFrame(contadorFrameNivel);
+    actualizarTextoNivel(nivelJugador);
 }
 
 function actualizarBarraNivel() {
@@ -483,4 +676,12 @@ function actualizarBarraNivel() {
             barraNivel.setFrame(++contadorFrameNivel);
         }
     }
+}
+
+function actualizarTextoRonda() {
+    textoRonda.setText(`Ronda ${numRondaReal}`)
+}
+
+function actualizarTextoNivel(nivelJ) {
+    textoNivel.setText(`Nivel ${nivelJ}`);
 }

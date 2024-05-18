@@ -1,10 +1,11 @@
 let mapa, jugador, keyA, keyW, keyS, keyD, puntero, barraVida, 
     barraNivel, contadorFrameVida = 0, contadorFrameNivel = 0;
 let capaSuelo, capaElementosSuelo, capaJugador, encimaJugador;
-let anchoMundo, altoMundo;
+let anchoMundo, altoMundo, punto_aparicion;
 let scale = 1.75, gameOver = false;
-let numEnemigosRonda = 25, xpActual = 0, nivelJugador = 0, 
-    xpNecesariaSubirNivel = 2500, xpParaActualizarFrame = 250, xpActualFrame = 0, numRonda = 1;
+let numEnemigosRonda = 1, xpActual = 0, nivelJugador = 0, 
+    xpNecesariaSubirNivel = 2500, xpParaActualizarFrame = 250, xpActualFrame = 0;
+let numRondaReal = 1, numRondaHastaBoss = 1, textoRonda;
 let serpientes = [], bambus = [], aranyas = [], grupoEnemigos;
 
 function preload() {
@@ -22,6 +23,9 @@ function preload() {
     this.load.spritesheet('bola_abajo', "assets/complementos/bola_abajo.png", { frameWidth: 8, frameHeight: 15 });
     this.load.spritesheet('barra_vida', "assets/complementos/barra_vida.png", { frameWidth: 164, frameHeight: 48 });
     this.load.spritesheet('barra_nivel', "assets/complementos/barra_nivel.png", { frameWidth: 351, frameHeight: 35 });
+    this.load.spritesheet('boss_andar', "/assets/enemigos/bossFinal_andar.png", { frameWidth: 53, frameHeight: 34 });
+    this.load.spritesheet('boss_trans', "assets/enemigos/bossFinal_trans.png", { frameWidth: 65, frameHeight: 52 });
+    this.load.spritesheet('boss_reposo', "assets/enemigos/bossFinal_reposo.png", { frameWidth: 55, frameHeight: 33 });
 }
 
 function initSounds() {

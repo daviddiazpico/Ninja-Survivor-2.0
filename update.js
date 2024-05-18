@@ -31,11 +31,9 @@ function update() {
     if (this.time.now >= jugador.tiempoInmune) {
         jugador.golpeado = false;
     }
-
+    
     actualizarBarraNivel();
     if (xpActual >= xpNecesariaSubirNivel) {
         subirNivel();
-        
     }
-    console.log(xpActual + " - " + xpNecesariaSubirNivel + " - " + nivelJugador);
 }
